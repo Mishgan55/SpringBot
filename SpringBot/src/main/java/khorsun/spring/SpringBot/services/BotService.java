@@ -35,7 +35,11 @@ public class BotService extends TelegramLongPollingBot {
             String text = update.getMessage().getText();
             Long chatId = update.getMessage().getChatId();
             switch (text){
-                case "/start" : getCommand(chatId,update.getMessage().getChat().getFirstName());
+                case "/start" : sendWelcomeMessage(chatId,update.getMessage().getChat().getFirstName());
+                break;
+                case "/createdBy" : sendInformationAboutCreatedPerson(chatId);
+                break;
+                case "/KURWA" : setMessage(chatId,"JAKI BOBER KURWA @fedor_belarm");
                 break;
                 default: setMessage(chatId, "Sorry, this command doesn't work");
             }
@@ -43,12 +47,17 @@ public class BotService extends TelegramLongPollingBot {
 
     }
 
-    private void getCommand(Long chatId,String name){
+    private void sendWelcomeMessage(Long chatId, String name){
 
-        String welcomeWords="Hello," + name + ", nice to meet you!";
+        String welcomeWords="Hello, " + name + ", nice to meet you!";
 
         setMessage(chatId,welcomeWords);
 
+    }
+    private void sendInformationAboutCreatedPerson(Long chatId){
+        String createdMessage="This bot created by @MikhailKhorsun";
+
+        setMessage(chatId,createdMessage);
     }
 
     private void setMessage(Long chatId, String message){
