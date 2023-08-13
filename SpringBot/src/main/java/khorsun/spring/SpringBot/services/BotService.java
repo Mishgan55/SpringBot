@@ -1,6 +1,7 @@
 package khorsun.spring.SpringBot.services;
 
 import khorsun.spring.SpringBot.config.BotConfig;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -9,6 +10,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @Component
+@Slf4j
 public class BotService extends TelegramLongPollingBot {
 
     private final BotConfig botConfig;
@@ -39,8 +41,6 @@ public class BotService extends TelegramLongPollingBot {
                 break;
                 case "/createdBy" : sendInformationAboutCreatedPerson(chatId);
                 break;
-                case "/KURWA" : setMessage(chatId,"JAKI BOBER KURWA @fedor_belarm");
-                break;
                 default: setMessage(chatId, "Sorry, this command doesn't work");
             }
         }
@@ -50,13 +50,12 @@ public class BotService extends TelegramLongPollingBot {
     private void sendWelcomeMessage(Long chatId, String name){
 
         String welcomeWords="Hello, " + name + ", nice to meet you!";
-
+        log.info("Send message to user: "+name);
         setMessage(chatId,welcomeWords);
 
     }
     private void sendInformationAboutCreatedPerson(Long chatId){
         String createdMessage="This bot created by @MikhailKhorsun";
-
         setMessage(chatId,createdMessage);
     }
 
@@ -69,7 +68,7 @@ public class BotService extends TelegramLongPollingBot {
         try {
             execute(sendMessage);
         } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
+            log.error("Error occurred: "+e.getMessage());
         }
     }
 }
