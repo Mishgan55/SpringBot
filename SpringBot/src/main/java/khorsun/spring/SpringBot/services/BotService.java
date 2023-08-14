@@ -21,13 +21,15 @@ import java.util.List;
 public class BotService extends TelegramLongPollingBot {
 
     private final BotConfig botConfig;
+    private final UserService userService;
     @Autowired
-    public BotService(BotConfig botConfig) {
+    public BotService(BotConfig botConfig, UserService userService) {
 
         this.botConfig = botConfig;
+        this.userService = userService;
         List<BotCommand> listOfCommands=new ArrayList<>();
         listOfCommands.add(new BotCommand("/start","Sends a welcome message"));
-        listOfCommands.add(new BotCommand("/createdBy","Command shows the creator of the bot"));
+        listOfCommands.add(new BotCommand("/createdby","Command shows the creator of the bot"));
         listOfCommands.add(new BotCommand("/help","Bot information"));
 
         try {
@@ -56,9 +58,10 @@ public class BotService extends TelegramLongPollingBot {
             Long chatId = update.getMessage().getChatId();
             switch (text){
                 case "/start" :
+                    userService.saveUser(update.getMessage());
                     sendWelcomeMessage(chatId,update.getMessage().getChat().getFirstName());
                 break;
-                case "/createdBy" :
+                case "/createdby" :
                     sendInformationAboutCreatedPerson(chatId,update.getMessage().getChat().getFirstName());
                 break;
                 case "/help" :
