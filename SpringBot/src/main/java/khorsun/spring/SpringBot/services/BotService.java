@@ -10,10 +10,13 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -60,25 +63,96 @@ public class BotService extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
 
-        if (update.hasMessage()&&update.getMessage().hasText()){
+        if (update.hasMessage() && update.getMessage().hasText()) {
             String text = update.getMessage().getText();
             Long chatId = update.getMessage().getChatId();
-            switch (text){
-                case "/start" :
+            switch (text) {
+                case "/start":
                     userService.saveUser(update.getMessage());
-                    sendWelcomeMessage(chatId,update.getMessage().getChat().getFirstName());
-                break;
-                case "/createdby" :
-                    sendInformationAboutCreatedPerson(chatId,update.getMessage().getChat().getFirstName());
-                break;
-                case "/help" :
-                    sendMessage(chatId,"Bot under development.\n\n"+
-                            "You can only use these commands:\n\n"+
-                            "/start - Sends a welcome message.\n\n"+
+                    sendWelcomeMessage(chatId, update.getMessage().getChat().getFirstName());
+                    break;
+                case "/createdby":
+                    sendInformationAboutCreatedPerson(chatId, update.getMessage().getChat().getFirstName());
+                    break;
+                case "/delete":
+                    delete(chatId);
+                    break;
+                case "/help":
+                    sendMessage(chatId, "Bot under development.\n\n" +
+                            "You can only use these commands:\n\n" +
+                            "/start - Sends a welcome message.\n\n" +
                             "/createdBy - Command shows the creator of the bot.");
                     break;
-                default: sendMessage(chatId, "Sorry, this command doesn't work");
+                default:
+                    sendMessage(chatId, "Sorry, this command doesn't work");
             }
+        } else if (update.hasCallbackQuery()) {
+            String data = update.getCallbackQuery().getData();
+            Long chatId = update.getCallbackQuery().getMessage().getChatId();
+            Integer message = update.getCallbackQuery().getMessage().getMessageId();
+
+            if (data.equals("NO_BUTTON")) {
+                String text = "Thank You";
+                EditMessageText editMessageText = new EditMessageText();
+                editMessageText.setChatId(String.valueOf(chatId));
+                editMessageText.setMessageId(message);
+                editMessageText.setText(text);
+                try {
+                    execute(editMessageText);
+                } catch (TelegramApiException e) {
+                    log.error("Error occurred: "+e.getMessage());
+                }
+
+            } else if (data.equals("YES_BUTTON")) {
+                String text = "You successfully delete your account";
+                EditMessageText editMessageText = new EditMessageText();
+                editMessageText.setChatId(String.valueOf(chatId));
+                editMessageText.setMessageId(message);
+                editMessageText.setText(text);
+                userService.delete(chatId);
+                try {
+                    execute(editMessageText);
+                } catch (TelegramApiException e) {
+                    log.error("Error occurred: "+e.getMessage());
+                }
+            }
+
+        }
+    }
+
+    private void delete(Long chatId) {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(String.valueOf(chatId));
+        sendMessage.setText("Do you really want to delete your account?");
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+
+        List<List<InlineKeyboardButton>> keyboards=new ArrayList<>();
+
+        List<InlineKeyboardButton> keyBoard = new ArrayList<>();
+
+        var yesButton= new InlineKeyboardButton();
+
+
+        yesButton.setText("Yes");
+        yesButton.setCallbackData("YES_BUTTON");
+
+        var noButton=new InlineKeyboardButton();
+
+        noButton.setText("No");
+        noButton.setCallbackData("NO_BUTTON");
+
+        keyBoard.add(yesButton);
+        keyBoard.add(noButton);
+
+        keyboards.add(keyBoard);
+        inlineKeyboardMarkup.setKeyboard(keyboards);
+
+        sendMessage.setReplyMarkup(inlineKeyboardMarkup);
+
+        try {
+            execute(sendMessage);
+        } catch (TelegramApiException e) {
+            log.error("Error occurred: "+e.getMessage());
         }
 
     }
