@@ -1,6 +1,8 @@
 package khorsun.spring.SpringBot.services;
 
+import com.vdurmont.emoji.EmojiParser;
 import khorsun.spring.SpringBot.config.BotConfig;
+import khorsun.spring.SpringBot.util.UserValidation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,10 +22,13 @@ import java.util.List;
 @Slf4j
 public class BotService extends TelegramLongPollingBot {
 
+
+    private final UserValidation userValidation;
     private final BotConfig botConfig;
     private final UserService userService;
     @Autowired
-    public BotService(BotConfig botConfig, UserService userService) {
+    public BotService(UserValidation userValidation, BotConfig botConfig, UserService userService) {
+        this.userValidation = userValidation;
 
         this.botConfig = botConfig;
         this.userService = userService;
@@ -78,7 +83,7 @@ public class BotService extends TelegramLongPollingBot {
 
     private void sendWelcomeMessage(Long chatId, String name){
 
-        String welcomeWords="Hello, " + name + ", nice to meet you!";
+        String welcomeWords= EmojiParser.parseToUnicode("Hello, " + name + ", nice to meet you!"+":blush:");
         log.info("Send message to user: "+name);
         sendMessage(chatId,welcomeWords);
 
