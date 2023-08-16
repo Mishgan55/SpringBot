@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -25,6 +27,9 @@ public class UserService {
     }
     public void delete(Long id){
         userRepository.deleteById(id);
+    }
+    public List<User> findAllUsers(){
+       return userRepository.findAll();
     }
 
     public void saveUser(Message message){

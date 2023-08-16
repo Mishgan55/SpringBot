@@ -2,6 +2,7 @@ package khorsun.spring.SpringBot.services;
 
 import com.vdurmont.emoji.EmojiParser;
 import khorsun.spring.SpringBot.config.BotConfig;
+import khorsun.spring.SpringBot.models.User;
 import khorsun.spring.SpringBot.util.UserValidation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +67,17 @@ public class BotService extends TelegramLongPollingBot {
         if (update.hasMessage() && update.getMessage().hasText()) {
             String text = update.getMessage().getText();
             Long chatId = update.getMessage().getChatId();
+            /*With the help of the /send command,
+             we can make a newsletter inside telegrams for all users that we have in the database*/
+            if (text.contains("/send")&&chatId.equals(botConfig.getBotOwner())){
+                var textToSend = EmojiParser.parseToUnicode(text.substring(text.indexOf(" ")));
+                var allUsers = userService.findAllUsers();
+
+                for (User allUser : allUsers) {
+                    sendMessage(allUser.getId(),textToSend);
+                }
+            }
+
             switch (text) {
                 case "/start":
                     userService.saveUser(update.getMessage());
