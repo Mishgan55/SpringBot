@@ -3,18 +3,16 @@ package khorsun.spring.SpringBot.services;
 import com.vdurmont.emoji.EmojiParser;
 import khorsun.spring.SpringBot.config.BotConfig;
 import khorsun.spring.SpringBot.models.User;
-import khorsun.spring.SpringBot.util.UserValidation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.ArrayList;
@@ -25,17 +23,19 @@ import java.util.List;
 public class BotService extends TelegramLongPollingBot {
     private final BotConfig botConfig;
     private final UserService userService;
+    private final AdService adService;
     static final String YES_BUTTON="YES_BUTTON";
     static final String NO_BUTTON="NO_BUTTON";
     static final String HELP_COMMAND="Bot under development.\n\n" +
             "You can only use these commands:\n\n" +
             "/start - Sends a welcome message.\n\n" +
             "/createdBy - Command shows the creator of the bot.\n\n"+
-            "/delete = Command for deleting your account";
+            "/delete - Command for deleting your account";
     @Autowired
-    public BotService( BotConfig botConfig, UserService userService) {
+    public BotService(BotConfig botConfig, UserService userService, AdService adService) {
         this.botConfig = botConfig;
         this.userService = userService;
+        this.adService = adService;
     }
 
 
@@ -150,6 +150,17 @@ public class BotService extends TelegramLongPollingBot {
         sendMessage.setChatId(String.valueOf(chatId));
         sendMessage.setText(message);
         executeMessage(sendMessage);
+    }
+    /*A, using the database,
+     we pull messages about advertising and send them to the user*/
+    @Scheduled(cron = "0 * * * * *")
+    private void sendAd(){
+        var textToSend = adService.findAd(1).getDescription();
+        var allUsers = userService.findAllUsers();
+
+        for (User user : allUsers) {
+            sendMessage(user.getId(),textToSend);
+        }
     }
     private void executeEditMessageText(Long chatId, String text, Integer messageId){
         EditMessageText editMessageText = new EditMessageText();
