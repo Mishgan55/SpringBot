@@ -151,7 +151,7 @@ public class BotService extends TelegramLongPollingBot {
         sendMessage.setText(message);
         executeMessage(sendMessage);
     }
-    /*A, using the database,
+    /*automatic distribution of advertising, using the database,
      we pull messages about advertising and send them to the user*/
     @Scheduled(cron = "0 * * * * *")
     private void sendAd(){
